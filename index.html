@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/906/906334.png">
+    
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Task Manager","short_name":"Tasks","start_url":".","display":"standalone","background_color":"#f1f5f9","theme_color":"#2563eb","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/906/906334.png","sizes":"512x512","type":"image/png"}]}'>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+            /* Extra padding for mobile bottom bars */
+            padding-bottom: 80px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        h1 { text-align: center; margin-top: 0; color: var(--text); font-weight: 800; border-bottom: 2px solid var(--primary); display: table; margin: 0 auto 1rem auto; padding-bottom: 5px; }
+
+        .top-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
+        .small-btn { background: none; border: 1px solid #e2e8f0; color: #94a3b8; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; }
+        .small-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .reset-btn:hover { background: var(--danger); border-color: var(--danger); }
+
+        .filter-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 2rem; overflow-x: auto; padding-bottom: 5px; }
+        .filter-btn { background: #e2e8f0; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; font-weight: 600; color: #64748b; white-space: nowrap; }
+        .filter-btn.active { background: var(--primary); color: white; }
+
+        .progress-container { margin-bottom: 2rem; }
+        .overall-progress { background: #e2e8f0; border-radius: 10px; height: 14px; width: 100%; overflow: hidden; }
+        #progress-fill { background: var(--success); height: 100%; width: 0%; transition: width 0.4s ease; }
+        .progress-text { text-align: center; font-weight: bold; font-size: 0.85rem; margin-top: 8px; display: block; color: #64748b; }
+
+        .input-area { display: flex; flex-direction: column; gap: 12px; margin-bottom: 2.5rem; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; }
+        input[type="text"] { flex: 2; min-width: 200px; }
+        select { flex: 1; background: white; cursor: pointer; color: #1e293b; }
+
+        button#add-btn { background-color: var(--primary); color: white; border: none; padding: 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+        .task-list { list-style: none; padding: 0; }
+        
+        .task-item { 
+            position: relative; 
+            background: white; 
+            border-left: 6px solid #cbd5e1; 
+            border-radius: 8px; 
+            padding: 15px; 
+            margin-bottom: 12px; 
+            display: flex; 
+            align-items: flex-start; 
+            gap: 15px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+            overflow: hidden; 
+            min-height: 120px; 
+        }
+
+        .task-background { position: absolute; top: 0; right: 0; width: 80%; height: 100%; background-size: cover; background-position: center; opacity: 0.9; z-index: 1; }
+        .task-background::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, white 10%, transparent 70%); z-index: 2; }
+
+        .task-info { display: flex; flex-direction: column; flex-grow: 1; position: relative; z-index: 10; }
+        .task-text { font-weight: 600; font-size: 1.15rem; margin-bottom: 4px; }
+        .task-sub { font-size: 0.85rem; color: #64748b; display: flex; flex-direction: column; gap: 8px; }
+
+        .milestone-list { margin: 5px 0; padding: 0; list-style: none; }
+        .milestone-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; margin-bottom: 4px; }
+        .milestone-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        .milestone-input { border: none; background: #f1f5f9; padding: 8px 10px; font-size: 0.85rem; width: 100%; max-width: 250px; border-radius: 4px; margin-top: 5px; border-bottom: 2px solid transparent; }
+        .milestone-input:focus { outline: none; border-bottom-color: var(--primary); }
+
+        .task-progress-bar-container { width: 150px; background: #e2e8f0; height: 10px; border-radius: 5px; overflow: hidden; margin: 4px 0; }
+        .task-progress-bar-fill { height: 100%; background: var(--success); transition: width 0.3s; }
+
+        .priority-high { border-left-color: var(--danger); }
+        .priority-med { border-left-color: var(--warning); }
+        .priority-low { border-left-color: var(--info); }
+        .badge { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px; display: inline-block; }
+        .badge-high { background: #fee2e2; color: #b91c1c; }
+        .badge-med { background: #fef3c7; color: #92400e; }
+        .badge-low { background: #dbeafe; color: #1e40af; }
+
+        .actions-div { 
+            position: relative; 
+            z-index: 20; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start;
+            gap: 15px; 
+            margin-left: auto; 
+        }
+        
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #94a3b8; padding: 5px; }
+        .action-btn:hover { color: var(--primary); }
+        .delete-btn:hover { color: var(--danger); }
+
+        #file-upload { display: none; }
+        .progress-val { font-weight: bold; color: var(--text); font-size: 0.9rem; }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 600px) {
+            .container { padding: 1.5rem; border-radius: 0; }
+            .input-row { flex-direction: column; }
+            .task-item { min-height: auto; }
+            .task-background::before { background: linear-gradient(to right, white 30%, transparent 90%); }
+            .milestone-input { width: 100%; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-actions">
+        <button class="small-btn" onclick="manageCategories()">Categories</button>
+        <button class="small-btn reset-btn" onclick="resetManager()">Reset</button>
+    </div>
+    <h1>Task Manager</h1>
+
+    <div class="filter-row">
+        <button class="filter-btn active" onclick="setFilter('all')">All</button>
+        <button class="filter-btn" onclick="setFilter('pending')">Pending</button>
+        <button class="filter-btn" onclick="setFilter('high')">High</button>
+        <button class="filter-btn" onclick="setFilter('completed')">Done</button>
+    </div>
+    
+    <div class="progress-container">
+        <div class="overall-progress">
+            <div id="progress-fill"></div>
+        </div>
+        <span class="progress-text" id="progress-label">0% Total Progress</span>
+    </div>
+
+    <div class="input-area">
+        <div class="input-row">
+            <input type="text" id="task-input" placeholder="Add a New Task">
+            <input type="date" id="date-input">
+        </div>
+        <div class="input-row">
+            <select id="priority-input">
+                <option value="" disabled selected>Priority</option>
+                <option value="3">High Priority</option>
+                <option value="2">Medium Priority</option>
+                <option value="1">Low Priority</option>
+            </select>
+            <select id="category-input">
+                <option value="auto" selected>Auto-Image (Search)</option>
+            </select>
+        </div>
+        <button id="add-btn">Create Task</button>
+    </div>
+
+    <ul id="task-list" class="task-list"></ul>
+</div>
+
+<input type="file" id="file-upload" accept="image/*">
+
+<script>
+    // --- SERVICE WORKER REGISTRATION (Offline Capability) ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            const swCode = `
+                const CACHE_NAME = 'task-manager-v1';
+                self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME)));
+                self.addEventListener('fetch', e => e.respondWith(
+                    caches.match(e.request).then(res => res || fetch(e.request))
+                ));
+            `;
+            const blob = new Blob([swCode], {type: 'text/javascript'});
+            const url = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(url);
+        });
+    }
+
+    const input = document.getElementById('task-input');
+    const dateInput = document.getElementById('date-input');
+    const priorityInput = document.getElementById('priority-input');
+    const categoryInput = document.getElementById('category-input');
+    const addBtn = document.getElementById('add-btn');
+    const list = document.getElementById('task-list');
+    const progressFill = document.getElementById('progress-fill');
+    const progressLabel = document.getElementById('progress-label');
+    const fileUpload = document.getElementById('file-upload');
+
+    const STORAGE_KEY = 'task-manager-pwa-v1'; 
+    const CAT_KEY = 'task-categories';
+    
+    let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let customCategories = JSON.parse(localStorage.getItem(CAT_KEY)) || [{ name: "Painting WH40K", path: "images/WH40K/" }];
+    let currentEditIndex = null;
+    let currentFilter = 'all';
+
+    function formatDate(dateStr) { if (!dateStr) return 'No date'; const [y, m, d] = dateStr.split('-'); return `${d}/${m}/${y}`; }
+    function calculateDaysLeft(dateStr) { if (!dateStr) return ''; const today = new Date().setHours(0,0,0,0); const target = new Date(dateStr).setHours(0,0,0,0); const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24)); return diff >= 0 ? `(${diff} days left)` : `(OVERDUE)`; }
+
+    function updateCategoryDropdown() {
+        categoryInput.innerHTML = '<option value="auto" selected>Auto-Image (Search)</option>';
+        customCategories.forEach((cat, index) => {
+            const opt = document.createElement('option');
+            opt.value = index; opt.textContent = cat.name; categoryInput.appendChild(opt);
+        });
+    }
+
+    function generateInitialImagePath(categoryValue, taskText) {
+        if (categoryValue === "auto") return `https://loremflickr.com/500/300/${encodeURIComponent(taskText)}?random=${Math.random()}`;
+        if (!isNaN(categoryValue)) {
+            const cat = customCategories[categoryValue];
+            if (cat) { const randomNum = Math.floor(Math.random() * 3) + 1; return `${cat.path}image${randomNum}.jpg`; }
+        }
+        return "";
+    }
+
+    function renderTasks() {
+        tasks.sort((a, b) => b.priority - a.priority || a.done - b.done);
+        list.innerHTML = '';
+        
+        tasks.forEach((task, index) => {
+            if (currentFilter === 'pending' && task.done) return;
+            if (currentFilter === 'completed' && !task.done) return;
+            if (currentFilter === 'high' && task.priority != 3) return;
+
+            const li = document.createElement('li');
+            const pLevel = task.priority == 3 ? 'high' : task.priority == 2 ? 'med' : 'low';
+            li.className = `task-item priority-${pLevel} ${task.done ? 'completed' : ''}`;
+            
+            const bgUrl = task.imgUrl || "";
+            const progress = task.progress || 0;
+            const milestones = task.milestones || [];
+
+            let milestonesHtml = milestones.map((m, mIdx) => `
+                <div class="milestone-item">
+                    <input type="checkbox" ${m.done ? 'checked' : ''} onchange="toggleMilestone(${index}, ${mIdx})">
+                    <span>${m.text}</span>
+                </div>
+            `).join('');
+
+            li.innerHTML = `
+                <div class="task-background" style="background-image: url('${bgUrl}');"></div>
+                <input type="checkbox" style="z-index:10; margin-top:5px; width:22px; height:22px;" ${task.done ? 'checked' : ''} onchange="toggleTask(${index})">
+                <div class="task-info">
+                    <div><span class="badge badge-${pLevel}">${pLevel}</span></div>
+                    <span class="task-text">${task.text}</span>
+                    <div class="task-sub">
+                        <span>📅 ${formatDate(task.date)} ${calculateDaysLeft(task.date)}</span>
+                        <div class="milestone-list">${milestonesHtml}</div>
+                        <input type="text" class="milestone-input" placeholder="+ Add Milestone" onkeypress="addMilestone(event, ${index})">
+                        <div style="margin-top:10px;">
+                            <div class="task-progress-bar-container">
+                                <div class="task-progress-bar-fill" style="width: ${progress}%"></div>
+                            </div>
+                            <span class="progress-val">${progress}%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="actions-div">
+                    <button class="action-btn delete-btn" onclick="deleteTask(${index})">×</button>
+                    <button class="action-btn" onclick="openImageSettings(${index})">🖼️</button>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+        updateOverallProgress();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }
+
+    function addMilestone(e, taskIndex) {
+        if (e.key === 'Enter' && e.target.value.trim()) {
+            if (!tasks[taskIndex].milestones) tasks[taskIndex].milestones = [];
+            tasks[taskIndex].milestones.push({ text: e.target.value.trim(), done: false });
+            e.target.value = '';
+            calculateTaskProgress(taskIndex);
+            renderTasks();
+        }
+    }
+
+    function toggleMilestone(taskIdx, mIdx) {
+        tasks[taskIdx].milestones[mIdx].done = !tasks[taskIdx].milestones[mIdx].done;
+        calculateTaskProgress(taskIdx);
+        renderTasks();
+    }
+
+    function calculateTaskProgress(taskIdx) {
+        const total = tasks[taskIdx].milestones.length;
+        if (total === 0) {
+            tasks[taskIdx].progress = tasks[taskIdx].done ? 100 : 0;
+            return;
+        }
+        const done = tasks[taskIdx].milestones.filter(m => m.done).length;
+        tasks[taskIdx].progress = Math.round((done / total) * 100);
+        tasks[taskIdx].done = (tasks[taskIdx].progress === 100);
+    }
+
+    function addTask() {
+        if (input.value.trim()) {
+            tasks.push({ 
+                text: input.value.trim(), date: dateInput.value, 
+                priority: priorityInput.value === "" ? 2 : parseInt(priorityInput.value), 
+                category: categoryInput.value, imgUrl: generateInitialImagePath(categoryInput.value, input.value.trim()),
+                done: false, progress: 0, milestones: []
+            });
+            input.value = ''; dateInput.value = ''; priorityInput.selectedIndex = 0; categoryInput.selectedIndex = 0;
+            renderTasks();
+        }
+    }
+
+    function deleteTask(index) { if(confirm("Delete this task?")) { tasks.splice(index, 1); renderTasks(); } }
+    function setFilter(f) { currentFilter = f; document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase().includes(f) || (f === 'all' && b.innerText === 'All'))); renderTasks(); }
+    
+    function updateOverallProgress() {
+        if (tasks.length === 0) { progressFill.style.width = '0%'; progressLabel.innerText = 'No tasks active'; return; }
+        const avg = Math.round(tasks.reduce((a, t) => a + (t.progress || 0), 0) / tasks.length);
+        progressFill.style.width = avg + '%'; progressLabel.innerText = `${avg}% Total Progress`;
+    }
+    
+    function resetManager() { if (confirm("Delete ALL tasks?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
+    
+    function manageCategories() { 
+        let action = prompt("Type 'add' to create a new category, or type the name of one to delete it.");
+        if (action === 'add') {
+            const name = prompt("Category Name:"); const path = prompt("Folder Path (images/FolderName/):");
+            if (name && path) { customCategories.push({ name, path }); localStorage.setItem(CAT_KEY, JSON.stringify(customCategories)); updateCategoryDropdown(); }
+        } else if (action) {
+            customCategories = customCategories.filter(c => c.name !== action);
+            localStorage.setItem(CAT_KEY, JSON.stringify(customCategories)); updateCategoryDropdown();
+        }
+    }
+
+    function openImageSettings(index) { currentEditIndex = index; const choice = confirm("OK for Local File (Phone Gallery), CANCEL for Web Link."); if (choice) fileUpload.click(); else { const url = prompt("Enter Image URL:"); if (url) { tasks[currentEditIndex].imgUrl = url; renderTasks(); } } }
+    fileUpload.addEventListener('change', function() { if(this.files[0]) { const reader = new FileReader(); reader.onload = (e) => { tasks[currentEditIndex].imgUrl = e.target.result; renderTasks(); }; reader.readAsDataURL(this.files[0]); } });
+
+    updateCategoryDropdown();
+    renderTasks();
+    addBtn.addEventListener('click', addTask);
+</script>
+</body>
+</html>
