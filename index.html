@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WH40K Painting Tracker</title>
+    <title>Mini-Painter Tracker</title>
     
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="favicon/favicon.jpg">
     <link rel="icon" type="image/jpeg" href="favicon/favicon.jpg">
     
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Hobby Tracker","short_name":"Hobby","start_url":".","display":"standalone","background_color":"#f1f5f9","theme_color":"#2563eb","icons":[{"src":"favicon/favicon.jpg","sizes":"512x512","type":"image/jpeg"}]}'>
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Mini-Painter","short_name":"MiniPaint","start_url":".","display":"standalone","background_color":"#f1f5f9","theme_color":"#2563eb","icons":[{"src":"favicon/favicon.jpg","sizes":"512x512","type":"image/jpeg"}]}'>
 
     <style>
         :root {
@@ -147,17 +147,16 @@
 
 <div class="container">
     <div class="top-actions">
-        <button class="small-btn" onclick="manageCategories()">Hobby Folders</button>
-        <button class="small-btn" onclick="resetManager()" style="color:var(--danger)">Wipe Data</button>
+        <button class="small-btn" onclick="resetManager()" style="color:var(--danger)">Reset All</button>
     </div>
 
     <div class="header-container">
         <img src="favicon/favicon.jpg" alt="Logo" class="header-logo">
-        <h1>Miniature Tracker</h1>
+        <h1>Mini-Painter</h1>
     </div>
 
     <div class="data-slate">
-        <span class="progress-text" id="progress-label" style="font-weight: 800;">Awaiting Deployment</span>
+        <span class="progress-text" id="progress-label" style="font-weight: 800;">No Minis Added.</span>
         <div class="overall-progress">
             <div id="progress-fill"></div>
         </div>
@@ -192,9 +191,6 @@
                 <option value="2">Medium Priority</option>
                 <option value="1">Low Priority</option>
             </select>
-            <select id="category-input">
-                <option value="auto" selected>Auto-Image (Search)</option>
-            </select>
         </div>
         <button id="add-btn">Create Project</button>
     </div>
@@ -208,12 +204,10 @@
 
 <script>
     const STORAGE_KEY = 'wh-hobby-tracker-v2'; 
-    const CAT_KEY = 'wh-hobby-categories';
 
     const input = document.getElementById('task-input');
     const dateInput = document.getElementById('date-input');
     const priorityInput = document.getElementById('priority-input');
-    const categoryInput = document.getElementById('category-input');
     const searchInput = document.getElementById('search-input');
     const addBtn = document.getElementById('add-btn');
     const list = document.getElementById('task-list');
@@ -224,7 +218,6 @@
     const fileUpload = document.getElementById('file-upload');
 
     let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    let customCategories = JSON.parse(localStorage.getItem(CAT_KEY)) || [{ name: "Painting WH40K", path: "images/WH40K/" }];
     let currentEditIndex = null;
 
     function toggleStageTag(el) { el.classList.toggle('selected'); }
@@ -308,7 +301,8 @@
             tasks.push({ 
                 text: miniName, date: dateInput.value, 
                 priority: priorityInput.value === "" ? 2 : parseInt(priorityInput.value), 
-                imgUrl: `https://loremflickr.com/500/300/${encodeURIComponent(miniName)}?random=${Math.random()}`,
+                // Always uses a random 40K themed image from loremflickr
+                imgUrl: `https://loremflickr.com/500/300/warhammer,40k,painting?random=${Math.random()}`,
                 done: false, progress: 0, milestones: milestones
             });
 
@@ -323,7 +317,7 @@
     function updateOverallProgress() {
         if (tasks.length === 0) { 
             progressFill.style.width = '0%'; 
-            progressLabel.innerText = 'No units detected'; 
+            progressLabel.innerText = 'No Minis Added.'; 
             backlogCount.innerText = '0';
             completeCount.innerText = '0';
             return; 
@@ -338,14 +332,6 @@
         progressLabel.innerText = `${avg}% Army Painted`;
         backlogCount.innerText = inProgress;
         completeCount.innerText = completedUnits;
-    }
-
-    function manageCategories() { 
-        let action = prompt("Type 'add' to create a folder, or 'delete' to remove one.");
-        if (action === 'add') {
-            const name = prompt("Folder Name:"); const path = prompt("Path:");
-            if (name && path) { customCategories.push({ name, path }); localStorage.setItem(CAT_KEY, JSON.stringify(customCategories)); }
-        }
     }
 
     function resetManager() { if (confirm("Clear all data?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
