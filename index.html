@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Manager</title>
+    <title>WH40K Painting Tracker</title>
     
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/906/906334.png">
     
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Task Manager","short_name":"Tasks","start_url":".","display":"standalone","background_color":"#f1f5f9","theme_color":"#2563eb","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/906/906334.png","sizes":"512x512","type":"image/png"}]}'>
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Hobby Tracker","short_name":"Hobby","start_url":".","display":"standalone","background_color":"#f1f5f9","theme_color":"#2563eb","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/906/906334.png","sizes":"512x512","type":"image/png"}]}'>
 
     <style>
         :root {
@@ -46,73 +46,45 @@
             margin-top: 20px;
         }
 
-        /* Top Action Buttons Fixed */
-        .top-actions { 
-            position: absolute; 
-            top: 15px; 
-            right: 15px; 
-            display: flex; 
-            gap: 10px; 
-            z-index: 100;
-        }
-        
-        .small-btn { 
-            background: white; 
-            border: 1px solid #e2e8f0; 
-            color: #94a3b8; 
-            padding: 6px 12px; 
-            border-radius: 6px; 
-            font-size: 0.75rem; 
-            cursor: pointer; 
+        .top-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; z-index: 100; }
+        .small-btn { background: white; border: 1px solid #e2e8f0; color: #94a3b8; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
+
+        h1 { text-align: center; color: var(--text); font-weight: 800; border-bottom: 2px solid var(--primary); display: table; margin: 40px auto 1.5rem auto; padding-bottom: 5px; }
+
+        /* Stage Selection Buttons */
+        .stage-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
         }
 
-        h1 { 
-            text-align: center; 
-            color: var(--text); 
-            font-weight: 800; 
-            border-bottom: 2px solid var(--primary); 
-            display: table; 
-            margin: 40px auto 1.5rem auto; 
-            padding-bottom: 5px; 
+        .stage-tag {
+            background: #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: 1px solid transparent;
         }
 
-        /* Filter Row */
-        .filter-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 2rem; overflow-x: auto; padding-bottom: 10px; }
-        .filter-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; font-weight: 600; color: #64748b; white-space: nowrap; }
-        .filter-btn.active { background: var(--primary); color: white; }
+        .stage-tag.selected {
+            background: var(--primary);
+            color: white;
+        }
 
-        /* Progress Bar Section */
-        .progress-container { margin-bottom: 2rem; }
-        .overall-progress { background: #e2e8f0; border-radius: 10px; height: 14px; width: 100%; overflow: hidden; }
-        #progress-fill { background: var(--success); height: 100%; width: 0%; transition: width 0.4s ease; }
-        .progress-text { text-align: center; font-weight: bold; font-size: 0.85rem; margin-top: 8px; display: block; color: #64748b; }
-
-        /* Input Area - RESTORED BLUE BUTTON */
         .input-area { display: flex; flex-direction: column; gap: 12px; margin-bottom: 2.5rem; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
         .input-row { display: flex; gap: 10px; flex-wrap: wrap; }
         
         input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; width: 100%; box-sizing: border-box; }
         
-        /* Date placeholder fix */
-        input[type="date"]::before { content: attr(placeholder); width: 100%; color: #94a3b8; }
-        input[type="date"]:focus::before, input[type="date"]:valid::before { content: ""; width: 0; }
-
-        input[type="text"] { flex: 2; min-width: 200px; }
-        select { flex: 1; background: white; cursor: pointer; color: #1e293b; }
-
-        #add-btn { 
-            background-color: var(--primary) !important; 
-            color: white !important; 
-            border: none; 
-            padding: 15px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 1.1rem;
-            width: 100%;
-            transition: background 0.2s;
-        }
-        #add-btn:hover { background-color: #1d4ed8; }
+        #add-btn { background-color: var(--primary) !important; color: white !important; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1rem; width: 100%; }
 
         /* Task Items */
         .task-list { list-style: none; padding: 0; }
@@ -129,37 +101,23 @@
         .milestone-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; margin-bottom: 4px; }
         .milestone-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
         
-        .milestone-input { border: 1px solid #e2e8f0; background: #f1f5f9; padding: 10px; font-size: 0.9rem; width: 100%; max-width: 250px; border-radius: 6px; margin-top: 10px; }
-
         .task-progress-bar-container { width: 150px; background: #e2e8f0; height: 10px; border-radius: 5px; overflow: hidden; margin: 4px 0; }
         .task-progress-bar-fill { height: 100%; background: var(--success); transition: width 0.3s; }
 
         .actions-div { position: relative; z-index: 20; display: flex; flex-direction: column; gap: 20px; margin-left: auto; padding-left: 10px; }
-        .action-btn { background: none; border: none; font-size: 1.6rem; color: #94a3b8; padding: 5px; cursor: pointer; }
+        .action-btn { background: none; border: none; font-size: 1.6rem; color: #94a3b8; cursor: pointer; }
 
         .priority-high { border-left-color: var(--danger); }
         .priority-med { border-left-color: var(--warning); }
         .priority-low { border-left-color: var(--info); }
-        .badge { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px; display: inline-block; }
-        .badge-high { background: #fee2e2; color: #b91c1c; }
-        .badge-med { background: #fef3c7; color: #92400e; }
-        .badge-low { background: #dbeafe; color: #1e40af; }
-
-        /* MANDATORY: Hide the ugly browse button */
-        #file-upload { 
-            display: none !important;
-            visibility: hidden;
-            width: 0;
-            height: 0;
-            position: absolute;
-        }
+        
+        #file-upload { display: none; }
 
         @media (max-width: 600px) {
-            .container { padding: 1.2rem; border-radius: 0; margin-top: 10px; }
+            .container { padding: 1.2rem; border-radius: 0; }
             .top-actions { position: relative; top: 0; right: 0; justify-content: center; margin-bottom: 10px; width: 100%; }
             h1 { margin-top: 10px; }
             .input-row { flex-direction: column; }
-            .milestone-input { max-width: none; }
         }
     </style>
 </head>
@@ -167,30 +125,36 @@
 
 <div class="container">
     <div class="top-actions">
-        <button class="small-btn" onclick="manageCategories()">Categories</button>
-        <button class="small-btn" onclick="resetManager()" style="color:var(--danger)">Reset All</button>
+        <button class="small-btn" onclick="manageCategories()">Hobby Folders</button>
+        <button class="small-btn" onclick="resetManager()" style="color:var(--danger)">Wipe Data</button>
     </div>
-    <h1>Task Manager</h1>
+    <h1>Miniature Tracker</h1>
 
-    <div class="filter-row">
-        <button class="filter-btn active" onclick="setFilter('all')">All</button>
-        <button class="filter-btn" onclick="setFilter('pending')">Pending</button>
-        <button class="filter-btn" onclick="setFilter('high')">High</button>
-        <button class="filter-btn" onclick="setFilter('completed')">Done</button>
-    </div>
-    
     <div class="progress-container">
         <div class="overall-progress">
             <div id="progress-fill"></div>
         </div>
-        <span class="progress-text" id="progress-label">0% Total Progress</span>
+        <span class="progress-text" id="progress-label">0% Army Painted</span>
     </div>
 
     <div class="input-area">
         <div class="input-row">
-            <input type="text" id="task-input" placeholder="Add a New Task">
-            <input type="date" id="date-input" placeholder="Due Date" required>
+            <input type="text" id="task-input" placeholder="Miniature Name (e.g. Intercessor Squad)">
+            <input type="date" id="date-input" placeholder="Due Date">
         </div>
+        
+        <label style="font-size: 0.8rem; font-weight: bold; color: #64748b; margin-top: 5px;">Select Painting Stages:</label>
+        <div class="stage-selector" id="stage-selector">
+            <span class="stage-tag" onclick="toggleStageTag(this)">Prime</span>
+            <span class="stage-tag" onclick="toggleStageTag(this)">Basecoat</span>
+            <span class="stage-tag" onclick="toggleStageTag(this)">Wash/Shade</span>
+            <span class="stage-tag" onclick="toggleStageTag(this)">Details</span>
+            <span class="stage-tag" onclick="toggleStageTag(this)">Layering</span>
+            <span class="stage-tag" onclick="toggleStageTag(this)">Edge Highlight</span>
+            <span class="stage-tag" onclick="toggleStageTag(this)">Weathering</span>
+            <span class="stage-tag" onclick="toggleStageTag(this)">Basing</span>
+        </div>
+
         <div class="input-row">
             <select id="priority-input">
                 <option value="" disabled selected>Priority</option>
@@ -202,7 +166,7 @@
                 <option value="auto" selected>Auto-Image (Search)</option>
             </select>
         </div>
-        <button id="add-btn">Create Task</button>
+        <button id="add-btn">Create Project</button>
     </div>
 
     <ul id="task-list" class="task-list"></ul>
@@ -211,21 +175,6 @@
 <input type="file" id="file-upload" accept="image/*">
 
 <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            const swCode = `
-                const CACHE_NAME = 'task-manager-v3';
-                self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME)));
-                self.addEventListener('fetch', e => e.respondWith(
-                    caches.match(e.request).then(res => res || fetch(e.request))
-                ));
-            `;
-            const blob = new Blob([swCode], {type: 'text/javascript'});
-            const url = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(url);
-        });
-    }
-
     const input = document.getElementById('task-input');
     const dateInput = document.getElementById('date-input');
     const priorityInput = document.getElementById('priority-input');
@@ -236,16 +185,14 @@
     const progressLabel = document.getElementById('progress-label');
     const fileUpload = document.getElementById('file-upload');
 
-    const STORAGE_KEY = 'task-manager-pwa-v1'; 
-    const CAT_KEY = 'task-categories';
+    const STORAGE_KEY = 'wh-hobby-tracker-v1'; 
+    const CAT_KEY = 'wh-hobby-categories';
     
     let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     let customCategories = JSON.parse(localStorage.getItem(CAT_KEY)) || [{ name: "Painting WH40K", path: "images/WH40K/" }];
     let currentEditIndex = null;
-    let currentFilter = 'all';
 
-    function formatDate(dateStr) { if (!dateStr) return 'No date'; const [y, m, d] = dateStr.split('-'); return `${d}/${m}/${y}`; }
-    function calculateDaysLeft(dateStr) { if (!dateStr) return ''; const today = new Date().setHours(0,0,0,0); const target = new Date(dateStr).setHours(0,0,0,0); const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24)); return diff >= 0 ? `(${diff} days left)` : `(OVERDUE)`; }
+    function toggleStageTag(el) { el.classList.toggle('selected'); }
 
     function updateCategoryDropdown() {
         categoryInput.innerHTML = '<option value="auto" selected>Auto-Image (Search)</option>';
@@ -269,19 +216,11 @@
         list.innerHTML = '';
         
         tasks.forEach((task, index) => {
-            if (currentFilter === 'pending' && task.done) return;
-            if (currentFilter === 'completed' && !task.done) return;
-            if (currentFilter === 'high' && task.priority != 3) return;
-
             const li = document.createElement('li');
             const pLevel = task.priority == 3 ? 'high' : task.priority == 2 ? 'med' : 'low';
             li.className = `task-item priority-${pLevel} ${task.done ? 'completed' : ''}`;
             
-            const bgUrl = task.imgUrl || "";
-            const progress = task.progress || 0;
-            const milestones = task.milestones || [];
-
-            let milestonesHtml = milestones.map((m, mIdx) => `
+            const milestonesHtml = (task.milestones || []).map((m, mIdx) => `
                 <div class="milestone-item">
                     <input type="checkbox" ${m.done ? 'checked' : ''} onchange="toggleMilestone(${index}, ${mIdx})">
                     <span>${m.text}</span>
@@ -289,20 +228,16 @@
             `).join('');
 
             li.innerHTML = `
-                <div class="task-background" style="background-image: url('${bgUrl}');"></div>
-                <input type="checkbox" style="z-index:10; margin-top:5px; width:22px; height:22px;" ${task.done ? 'checked' : ''} onchange="toggleTask(${index})">
+                <div class="task-background" style="background-image: url('${task.imgUrl}');"></div>
                 <div class="task-info">
-                    <div><span class="badge badge-${pLevel}">${pLevel}</span></div>
                     <span class="task-text">${task.text}</span>
                     <div class="task-sub">
-                        <span>📅 ${formatDate(task.date)} ${calculateDaysLeft(task.date)}</span>
                         <div class="milestone-list">${milestonesHtml}</div>
-                        <input type="text" class="milestone-input" placeholder="+ Add Milestone" onkeypress="addMilestone(event, ${index})">
                         <div style="margin-top:10px;">
                             <div class="task-progress-bar-container">
-                                <div class="task-progress-bar-fill" style="width: ${progress}%"></div>
+                                <div class="task-progress-bar-fill" style="width: ${task.progress || 0}%"></div>
                             </div>
-                            <span class="progress-val">${progress}%</span>
+                            <span style="font-weight:bold">${task.progress || 0}%</span>
                         </div>
                     </div>
                 </div>
@@ -317,64 +252,54 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
     }
 
-    function addMilestone(e, taskIndex) {
-        if (e.key === 'Enter' && e.target.value.trim()) {
-            if (!tasks[taskIndex].milestones) tasks[taskIndex].milestones = [];
-            tasks[taskIndex].milestones.push({ text: e.target.value.trim(), done: false });
-            e.target.value = '';
-            calculateTaskProgress(taskIndex);
-            renderTasks();
-        }
-    }
-
     function toggleMilestone(taskIdx, mIdx) {
         tasks[taskIdx].milestones[mIdx].done = !tasks[taskIdx].milestones[mIdx].done;
-        calculateTaskProgress(taskIdx);
-        renderTasks();
-    }
-
-    function calculateTaskProgress(taskIdx) {
         const total = tasks[taskIdx].milestones.length;
-        if (total === 0) { tasks[taskIdx].progress = tasks[taskIdx].done ? 100 : 0; return; }
         const done = tasks[taskIdx].milestones.filter(m => m.done).length;
         tasks[taskIdx].progress = Math.round((done / total) * 100);
         tasks[taskIdx].done = (tasks[taskIdx].progress === 100);
+        renderTasks();
     }
 
     function addTask() {
-        if (input.value.trim()) {
+        const miniName = input.value.trim();
+        const selectedStageEls = document.querySelectorAll('.stage-tag.selected');
+        
+        if (miniName) {
+            const milestones = Array.from(selectedStageEls).map(el => ({ text: el.textContent, done: false }));
+            
             tasks.push({ 
-                text: input.value.trim(), date: dateInput.value, 
+                text: miniName, date: dateInput.value, 
                 priority: priorityInput.value === "" ? 2 : parseInt(priorityInput.value), 
-                category: categoryInput.value, imgUrl: generateInitialImagePath(categoryInput.value, input.value.trim()),
-                done: false, progress: 0, milestones: []
+                imgUrl: generateInitialImagePath(categoryInput.value, miniName),
+                done: false, progress: 0, milestones: milestones
             });
-            input.value = ''; dateInput.value = ''; priorityInput.selectedIndex = 0; categoryInput.selectedIndex = 0;
+
+            // Reset
+            input.value = '';
+            document.querySelectorAll('.stage-tag').forEach(el => el.classList.remove('selected'));
             renderTasks();
         }
     }
 
-    function deleteTask(index) { if(confirm("Delete this task?")) { tasks.splice(index, 1); renderTasks(); } }
-    function setFilter(f) { currentFilter = f; document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase().includes(f) || (f === 'all' && b.innerText === 'All'))); renderTasks(); }
-    function updateOverallProgress() {
-        if (tasks.length === 0) { progressFill.style.width = '0%'; progressLabel.innerText = 'No tasks active'; return; }
-        const avg = Math.round(tasks.reduce((a, t) => a + (t.progress || 0), 0) / tasks.length);
-        progressFill.style.width = avg + '%'; progressLabel.innerText = `${avg}% Total Progress`;
-    }
-    function resetManager() { if (confirm("Delete ALL tasks?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
+    function deleteTask(index) { if(confirm("Delete this project?")) { tasks.splice(index, 1); renderTasks(); } }
     
+    function updateOverallProgress() {
+        if (tasks.length === 0) { progressFill.style.width = '0%'; progressLabel.innerText = 'No projects'; return; }
+        const avg = Math.round(tasks.reduce((a, t) => a + (t.progress || 0), 0) / tasks.length);
+        progressFill.style.width = avg + '%'; progressLabel.innerText = `${avg}% Army Painted`;
+    }
+
     function manageCategories() { 
-        let action = prompt("Type 'add' to create a new category, or the name of one to delete it.");
+        let action = prompt("Type 'add' to create a hobby folder, or 'delete' to remove one.");
         if (action === 'add') {
-            const name = prompt("Category Name:"); const path = prompt("Folder Path (images/FolderName/):");
+            const name = prompt("Folder Name (e.g. Tyranids):"); const path = prompt("Path (images/Tyranids/):");
             if (name && path) { customCategories.push({ name, path }); localStorage.setItem(CAT_KEY, JSON.stringify(customCategories)); updateCategoryDropdown(); }
-        } else if (action) {
-            customCategories = customCategories.filter(c => c.name !== action);
-            localStorage.setItem(CAT_KEY, JSON.stringify(customCategories)); updateCategoryDropdown();
         }
     }
 
-    function openImageSettings(index) { currentEditIndex = index; const choice = confirm("OK for Phone Gallery, CANCEL for Web Link."); if (choice) fileUpload.click(); else { const url = prompt("Enter Image URL:"); if (url) { tasks[currentEditIndex].imgUrl = url; renderTasks(); } } }
+    function resetManager() { if (confirm("Clear all hobby data?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
+    function openImageSettings(index) { currentEditIndex = index; fileUpload.click(); }
     fileUpload.addEventListener('change', function() { if(this.files[0]) { const reader = new FileReader(); reader.onload = (e) => { tasks[currentEditIndex].imgUrl = e.target.result; renderTasks(); }; reader.readAsDataURL(this.files[0]); } });
 
     updateCategoryDropdown();
